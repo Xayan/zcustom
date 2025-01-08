@@ -1,0 +1,22 @@
+#!/usr/bin/env zsh
+
+__zc_debug_dumpenv() {
+    local -a vars=(
+        ZCUSTOM ZDEBUG ZCONFIG ZFUNCTIONS ZLIB ZPLUGINS ZSCRIPTS
+        ZLOGS ZCACHE ZDOTDIR ZCOMPDUMP
+        EDITOR EDITOR_GUI EDITOR_CLI
+        ADOTDIR ANTIGEN_CACHE ANTIGEN_LOG ANTIGEN_DEBUG_LOG
+        ZSHZ_DATA
+    )
+
+    # Find longest variable name for padding
+    local max_length=0
+    for var in $vars; do
+        (( ${#var} > max_length )) && max_length=${#var}
+    done
+
+    __zc_print_debug "Custom Environment Variables:" 0
+    for var in $vars; do
+        __zc_print_debug "$(printf "%-${max_length}s = %s" $var ${(P)var})" 2
+    done
+}

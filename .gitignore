@@ -1,0 +1,21 @@
+
+/plugins/*
+
+/var/*
+!/var/*/
+
+# VS Code
+/.history
+/.vscode/*
+!/.vscode/settings.json
+!/.vscode/tasks.json
+!/.vscode/launch.json
+!/.vscode/extensions.json
+!/.vscode/*.code-snippets
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*

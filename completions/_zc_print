@@ -1,0 +1,7 @@
+#compdef zc_print
+
+_zc_print() {
+  return
+}
+
+_zc_print "$@"

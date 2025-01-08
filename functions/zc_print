@@ -1,0 +1,65 @@
+#!/usr/bin/env zsh
+
+# Arguments:
+#   $1: format string (supports printf-style formatting)
+#   $2-$n: arguments for format string
+# Parameters:
+#   --type: message type (info|warn|err)
+#   --indent: indentation level
+#   --color-fg: custom foreground color of the message
+#   --color-bg: custom background color of the message
+#   --source: enable source prefix (the calling function)
+zc_print() {
+  local color_fg color_bg source type indent
+  zparseopts -D -E \
+    -color-fg:=color_fg \
+    -color-bg:=color_bg \
+    -source=source \
+    -type:=type \
+    -indent:=indent
+
+  # Ensure we have a message
+  if [[ $# -eq 0 ]]; then
+    print -P "%F{red}[ERR] No message provided%f"
+    return 1
+  fi
+
+  local message="$1"
+  shift
+  local prefix=""
+  local color_name="white"
+  local bg_color=""
+
+  # Handle type-specific formatting
+  case "${type[2]}" in
+    "info") prefix=" [INFO] "; color_name="blue" ;;
+    "warn") prefix=" [WARN] "; color_name="yellow" ;;
+    "err")  prefix="  [ERR] "; color_name="red" ;;
+    *)      prefix="" ;;
+  esac
+
+  # Only add source prefix if --source parameter is present
+  if [[ -n "$source" ]]; then
+    if [[ -n "$funcstack[2]" ]]; then
+      # prefix=$(printf "%s(%s): " "${prefix}" "$(zc_file_path_relative "${funcstack[2]}")")
+      prefix=$(printf "%s(%s): " "${prefix}" "${${funcstack[2]#$ZCUSTOM}#?}")
+    else
+      prefix="${prefix}(zsh): "
+    fi
+  fi
+
+  # Override with custom colors if specified
+  [[ -n "$color_fg" ]] && color_name="${color_fg[2]}"
+  [[ -n "$color_bg" ]] && bg_color="%K{${color_bg[2]}}"
+
+  # Build indentation
+  local spaces=""
+  for ((i=0; i<${indent[2]:-0}; i++)); do
+    spaces+="  "
+  done
+
+  # Format the message with the provided arguments
+  local formatted_message=$(printf "$message" "$@")
+
+  print -P "${bg_color}%F{$color_name}${prefix}${spaces}${formatted_message}%f%k"
+}

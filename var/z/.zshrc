@@ -1,0 +1,1 @@
+/Users/xayan/.zsh/.zshrc

@@ -1,0 +1,24 @@
+{
+  "editor.tabSize": 2,
+  "files.associations": {
+    "**/functions/**": "shellscript",
+    "**/completions/**": "shellscript",
+    ".zshrc": "shellscript"
+  },
+  "multiCommand.commands": [
+    {
+      "command": "multiCommand.createFileFromSnippet",
+      "sequence": [
+        {
+          "shellscript": "echo 'Hello, World!' > $1"
+          // "command": "Util"
+        },
+        // {
+        //   "command": "editor.action.clipboardPasteAction",
+        //   "when": "editorTextFocus && !editorReadonly"
+        // }
+      ]
+    }
+  ],
+  "scm.defaultViewMode": "tree"
+}

@@ -1,0 +1,11 @@
+zc_prompt_edit() {
+    local tmpfile="$(mktemp)"
+    print -rl -- "$BUFFER" > "$tmpfile"
+    if [[ "$EDITOR" == "micro" ]]; then
+        "$EDITOR" -filetype=zsh "$tmpfile"
+    else
+        "$EDITOR" "$tmpfile"
+    fi
+    BUFFER="$(<"$tmpfile")"
+    rm "$tmpfile"
+}
