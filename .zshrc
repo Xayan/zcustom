@@ -18,46 +18,43 @@ export ZCACHE="$ZCUSTOM/var/cache"
 # zsh internal
 export ZDOTDIR="$ZCUSTOM/var/z"
 export ZCOMPDUMP="$ZCACHE/.zcompdump"
+
 fpath=($ZFUNCTIONS $ZFUNCTIONS/**/*(/N) "$ZCUSTOM/completions" $fpath)
 
-autoload -Uz zc_debug
+autoload -Uz zc_debug zc_load
+
+zc_load --script "setopts.zsh"
 
 if [[ "$(uname)" == "Darwin" ]]; then
-    zc_debug "MacOS detected, sourcing %s/macos.zsh"
-    source "$ZSCRIPTS/macos.zsh"
+  zc_load --script "macos.zsh"
 fi
 
-for func in $ZFUNCTIONS/*(N); do
+for func in $ZFUNCTIONS/**/*(N); do
   if [[ -f $func ]]; then
-    zc_debug "Autoloading function ${func:t}"
-    autoload -Uz ${func}
+    zc_load --function ${func:t}
   fi
 done
 
-autoload -Uz compinit
-compinit -D
-
-for file in $ZLIB/**/*.zsh; do
-  zc_debug "Sourcing file $(zc_relative_path $file)"
-  source $file
+for lib in $ZLIB/**/*(N); do
+  if [[ -f $lib ]]; then
+    zc_load --lib ${lib#$ZLIB/}
+  fi
 done
 
-source "$ZSCRIPTS/antigen_init.zsh"
+zc_load --script "antigen_init.zsh"
 
 # Splash screen
 () {
-  if [[ $ZDEBUG == true ]]; then
-    return
-  fi
+  [[ $ZDEBUG == true ]] && zc_debug --dumpenv && return
 
   if [[ "$DISPLAY" || -n "$SSH_CONNECTION" || "$TERM" == "xterm-256color" || "$TERM" == "screen-256color" ]]; then
-    local config="$ZCONFIG/fastfetch.jsonc"
+    local config=$(zc_load --config "fastfetch.jsonc")
 
-    if [[ -f $config ]]; then
-      zc_debug "Found fastfetch configuration in $(__zc_relpath $config)"
+    if [[ -n "$config" ]]; then
+      zc_debug "Found fastfetch configuration in ${config#$ZCUSTOM/}"
       fastfetch --config $config
     else
-      zc_debug "No fastfetch configuration found in $config"
+      zc_debug "No fastfetch configuration found"
       fastfetch
     fi
   fi

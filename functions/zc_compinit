@@ -1,0 +1,13 @@
+#!/usr/bin/env zsh
+
+zc_compinit() {
+  (( $+functions[compinit] )) && unfunction compinit
+
+  autoload -Uz compinit
+
+  if [[ $ZDEBUG == true ]]; then
+    compinit -D
+  else
+    compinit -d "$ZCOMPDUMP"
+  fi
+}

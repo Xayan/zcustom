@@ -28,8 +28,7 @@ antigen bundle agkozak/zsh-z
 
 # antigen bundle $ZPLUGINS/zcm --no-local-clone
 
-autoload -U compinit
-compinit -d $ZCOMPDUMP
+zc_compinit
 
 # antigen bundle Aloxaf/fzf-tab
 antigen bundle zsh-users/zsh-autosuggestions

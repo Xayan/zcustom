@@ -1,0 +1,10 @@
+#!/usr/bin/env zsh
+
+# Display error message and return error code
+# Arguments:
+#   $1: Message format string
+#   $@: Format arguments
+zc_error() {
+  zc_print "$@" --type err --source
+  return 1
+}

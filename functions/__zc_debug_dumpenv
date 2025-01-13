@@ -1,0 +1,37 @@
+#!/usr/bin/env zsh
+
+__zc_debug_dumpenv() {
+  # Debug settings
+  zc_print --type info "Debug Settings:"
+  zc_print --indent 1 "ZDEBUG=%s" "$ZDEBUG"
+
+  # Directory structure
+  zc_print --type info "Directory Structure:"
+  zc_print --indent 1 "ZCUSTOM=%s" "$ZCUSTOM"
+  zc_print --indent 1 "ZCONFIG=%s" "$ZCONFIG"
+  zc_print --indent 1 "ZFUNCTIONS=%s" "$ZFUNCTIONS"
+  zc_print --indent 1 "ZLIB=%s" "$ZLIB"
+  zc_print --indent 1 "ZPLUGINS=%s" "$ZPLUGINS"
+  zc_print --indent 1 "ZSCRIPTS=%s" "$ZSCRIPTS"
+  zc_print --indent 1 "ZLOGS=%s" "$ZLOGS"
+  zc_print --indent 1 "ZCACHE=%s" "$ZCACHE"
+
+  # ZSH internal
+  zc_print --type info "ZSH Internal:"
+  zc_print --indent 1 "fpath=(%s)" "$fpath"
+  zc_print --indent 1 "ZDOTDIR=%s" "$ZDOTDIR"
+  zc_print --indent 1 "ZCOMPDUMP=%s" "$ZCOMPDUMP"
+
+  # Antigen settings
+  zc_print --type info "Antigen Configuration:"
+  zc_print --indent 1 "ADOTDIR=%s" "$ADOTDIR"
+  zc_print --indent 1 "ANTIGEN_AUTO_CONFIG=%s" "$ANTIGEN_AUTO_CONFIG"
+  zc_print --indent 1 "ANTIGEN_COMPDUMP=%s" "$ANTIGEN_COMPDUMP"
+  zc_print --indent 1 "ANTIGEN_CACHE=%s" "$ANTIGEN_CACHE"
+  zc_print --indent 1 "ANTIGEN_LOG=%s" "$ANTIGEN_LOG"
+  zc_print --indent 1 "ANTIGEN_DEBUG_LOG=%s" "$ANTIGEN_DEBUG_LOG"
+
+  # Plugin specific
+  zc_print --type info "Plugin Configuration:"
+  zc_print --indent 1 "ZSHZ_DATA=%s" "$ZSHZ_DATA"
+}

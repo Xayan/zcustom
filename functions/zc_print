@@ -32,9 +32,9 @@ zc_print() {
 
   # Handle type-specific formatting
   case "${type[2]}" in
-    "info") prefix=" [INFO] "; color_name="blue" ;;
-    "warn") prefix=" [WARN] "; color_name="yellow" ;;
-    "err")  prefix="  [ERR] "; color_name="red" ;;
+    "info") prefix="[INFO] "; color_name="blue" ;;
+    "warn") prefix="[WARN] "; color_name="yellow" ;;
+    "err")  prefix="[ERR] "; color_name="red" ;;
     *)      prefix="" ;;
   esac
 

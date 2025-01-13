@@ -1,0 +1,30 @@
+#!/usr/bin/env zsh
+
+# Usage:
+# zc_debug "message"
+# zc_debug --dumpenv
+zc_debug() {
+  if [[ $ZDEBUG != true ]]; then
+    return 0
+  fi
+
+  case "$1" in
+    --dumpenv)
+      __zc_debug_dumpenv
+      ;;
+    *)
+      local prefix=""
+
+      [[ -n "$funcstack[2]" ]] \
+        && [[ "${funcstack[2]}" = /* ]] \
+          && prefix=${${funcstack[2]#$ZCUSTOM}#?} \
+          || prefix=${funcstack[2]} \
+        || prefix="zsh"
+
+      local message=$1 && shift
+      local formatted_message=$(printf $message $@)
+
+      print -P "%F{yellow}[DBG]%f (${prefix}): ${formatted_message}"
+      ;;
+  esac
+}

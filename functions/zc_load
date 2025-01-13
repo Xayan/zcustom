@@ -1,0 +1,57 @@
+#!/usr/bin/env zsh
+
+# Load different types of zsh resources
+# Arguments:
+#   --script name:  Source a script from $ZSCRIPTS
+#   --function name:    Autoload all functions from $ZFUNCTIONS
+#   --libs:         Source all library files from $ZLIB
+#   --config name:  Get full filepath of config file from $ZCONFIG
+zc_load() {
+  local -A opts
+  zparseopts -D -E -A opts \
+    -script:=script \
+    -function:=function \
+    -lib:=lib \
+    -config:=config
+
+  [[ ${#opts[@]} != 1 ]] && zc_error "Exactly one parameter must be specified"
+
+  local type=${${(k)opts}[1]}
+  local filepath=${opts[$type]}
+
+  case $type in
+    "--script")
+      local script_path="$ZSCRIPTS/$filepath"
+
+      [[ -f $script_path ]] && {
+        zc_debug "Sourcing '%s'" ${script_path#$ZCUSTOM/}
+        source "$script_path"
+      } || zc_error "Script not found: %s" ${script_path#$ZCUSTOM/}
+      ;;
+    "--function")
+      local function_path="$ZFUNCTIONS/$filepath"
+
+      [[ -f $function_path ]] && {
+        zc_debug "Autoloading function '%s'" ${function_path:t}
+        autoload -Uz ${function_path}
+      } || zc_error "Function not found: %s" ${function_path#$ZCUSTOM/}
+      ;;
+    "--lib")
+      local lib_path="$ZLIB/$filepath"
+
+      [[ -f $lib_path ]] && {
+        zc_debug "Sourcing '%s'" ${lib_path#$ZCUSTOM/}
+        source $lib_path
+      } || zc_error "Library not found: %s" ${lib_path#$ZCUSTOM/}
+      ;;
+
+    "--config")
+      local config_path="$ZCONFIG/$filepath"
+
+      [[ -f $config_path ]] && {
+        zc_debug "Config located: '%s'" ${config_path#$ZCUSTOM/}
+        echo $config_path
+      } || zc_error "Config not found: %s" ${config_path#$ZCUSTOM/}
+      ;;
+  esac
+}
