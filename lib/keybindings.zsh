@@ -3,7 +3,7 @@
 # Basic emacs keybindings
 bindkey -e
 
-file="$ZCONFIG/bindkey.json"
+local file="$ZCONFIG/bindkey.json"
 
 if [[ -f $file ]]; then
   zc_debug "Loading keybindings from '%s'" ${file#$ZCUSTOM/}

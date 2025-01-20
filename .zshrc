@@ -2,8 +2,6 @@
 
 export ZCUSTOM="$HOME/.zsh"
 
-export ZDEBUG=true
-
 # Custom setup
 export ZCONFIG="$ZCUSTOM/config"
 export ZFUNCTIONS="$ZCUSTOM/functions"
@@ -14,48 +12,49 @@ export ZSCRIPTS="$ZCUSTOM/scripts"
 # Temp files
 export ZLOGS="$ZCUSTOM/var/logs"
 export ZCACHE="$ZCUSTOM/var/cache"
-
-# zsh internal
-export ZDOTDIR="$ZCUSTOM/var/z"
 export ZCOMPDUMP="$ZCACHE/.zcompdump"
 
+# Debugging (use `zc_debug --enable|--disable` to toggle)
+export ZDEBUGFILE="$ZDOTDIR/.zdebug"
+export ZDEBUG=$(test -f $ZDEBUGFILE && echo 1 || echo 0)
+
+# Add functions dir and all of its subdirs to fpath
 fpath=($ZFUNCTIONS $ZFUNCTIONS/**/*(/N) "$ZCUSTOM/completions" $fpath)
 
-autoload -Uz zc_debug zc_load
+# Load functions
+() {
+  # Functions needed to load other functions
+  local preloaded=(zc_load zc_print zc_debug)
+  autoload -Uz $preloaded
 
+  # Load all functions lazily
+  for func in $ZFUNCTIONS/**/*(N); do
+    if [[ -f $func ]]; then
+      local fname=${func:t}
+      (( ${preloaded[(Ie)$fname]} )) && continue
+      zc_load --function $fname
+    fi
+  done
+}
+
+# Set shell options
 zc_load --script "setopts.zsh"
 
-if [[ "$(uname)" == "Darwin" ]]; then
-  zc_load --script "macos.zsh"
-fi
+# Prevent further setup if required programs are missing
+zc_load --script "requirements.zsh" || {
+  zc_print --err "Please install required programs and try again."
+  return
+}
 
-for func in $ZFUNCTIONS/**/*(N); do
-  if [[ -f $func ]]; then
-    zc_load --function ${func:t}
-  fi
-done
+# macOS specific setup
+[[ "$(uname)" == "Darwin" ]] && zc_load --script "macos.zsh"
 
+# Sourcing libraries
 for lib in $ZLIB/**/*(N); do
   if [[ -f $lib ]]; then
     zc_load --lib ${lib#$ZLIB/}
   fi
 done
 
-zc_load --script "antigen_init.zsh"
-
-# Splash screen
-() {
-  [[ $ZDEBUG == true ]] && zc_debug --dumpenv && return
-
-  if [[ "$DISPLAY" || -n "$SSH_CONNECTION" || "$TERM" == "xterm-256color" || "$TERM" == "screen-256color" ]]; then
-    local config=$(zc_load --config "fastfetch.jsonc")
-
-    if [[ -n "$config" ]]; then
-      zc_debug "Found fastfetch configuration in ${config#$ZCUSTOM/}"
-      fastfetch --config $config
-    else
-      zc_debug "No fastfetch configuration found"
-      fastfetch
-    fi
-  fi
-}
+zc_load --script "antigen.zsh"
+zc_load --script "fastfetch.zsh"

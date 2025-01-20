@@ -5,7 +5,7 @@ zc_compinit() {
 
   autoload -Uz compinit
 
-  if [[ $ZDEBUG == true ]]; then
+  if [[ $ZDEBUG ]]; then
     compinit -D
   else
     compinit -d "$ZCOMPDUMP"

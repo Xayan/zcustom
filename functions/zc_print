@@ -4,19 +4,30 @@
 #   $1: format string (supports printf-style formatting)
 #   $2-$n: arguments for format string
 # Parameters:
-#   --type: message type (info|warn|err)
+#   --info: info message type
+#   --warn: warning message type
+#   --err: error message type
+#   --ok: success message type
+#   --debug: debug message type
 #   --indent: indentation level
-#   --color-fg: custom foreground color of the message
-#   --color-bg: custom background color of the message
+#   --fg: custom foreground color of the message
+#   --bg: custom background color of the message
 #   --source: enable source prefix (the calling function)
+#   --block: extend background color to end of line
 zc_print() {
-  local color_fg color_bg source type indent
+  local fg bg source indent info warn err ok debug block
   zparseopts -D -E \
-    -color-fg:=color_fg \
-    -color-bg:=color_bg \
-    -source=source \
-    -type:=type \
-    -indent:=indent
+    -fg:=fg \
+    -bg:=bg \
+    -source:=source \
+    -trace=trace \
+    -indent:=indent \
+    -info=info \
+    -warn=warn \
+    -err=err \
+    -ok=ok \
+    -debug=debug \
+    -block=block
 
   # Ensure we have a message
   if [[ $# -eq 0 ]]; then
@@ -24,33 +35,38 @@ zc_print() {
     return 1
   fi
 
-  local message="$1"
-  shift
+  local message="$1" && shift
   local prefix=""
-  local color_name="white"
+  local caller=""
+  local fg_color="white"
   local bg_color=""
+  local block_end=${block:+"%E"}
 
   # Handle type-specific formatting
-  case "${type[2]}" in
-    "info") prefix="[INFO] "; color_name="blue" ;;
-    "warn") prefix="[WARN] "; color_name="yellow" ;;
-    "err")  prefix="[ERR] "; color_name="red" ;;
-    *)      prefix="" ;;
-  esac
+  if [[ -n "$info" ]]; then
+    prefix="%F{blue}[INFO]%f "
+  elif [[ -n "$warn" ]]; then
+    prefix="%F{yellow}[WARN]%f "
+  elif [[ -n "$err" ]]; then
+    prefix="%F{red}[ERR]%f "
+  elif [[ -n "$ok" ]]; then
+    prefix="%F{green}[OK]%f "
+  elif [[ -n "$debug" ]]; then
+    prefix="%F{magenta}[DBG]%f "
+  fi
 
   # Only add source prefix if --source parameter is present
   if [[ -n "$source" ]]; then
-    if [[ -n "$funcstack[2]" ]]; then
-      # prefix=$(printf "%s(%s): " "${prefix}" "$(zc_file_path_relative "${funcstack[2]}")")
-      prefix=$(printf "%s(%s): " "${prefix}" "${${funcstack[2]#$ZCUSTOM}#?}")
+    if [[ -n "$funcstack[$source[2]]" ]]; then
+      prefix+="${funcstack[$source[2]]#$ZCUSTOM/}: "
     else
-      prefix="${prefix}(zsh): "
+      prefix+="zsh: "
     fi
   fi
 
   # Override with custom colors if specified
-  [[ -n "$color_fg" ]] && color_name="${color_fg[2]}"
-  [[ -n "$color_bg" ]] && bg_color="%K{${color_bg[2]}}"
+  [[ -n "$fg" ]] && fg_color="${fg[2]}"
+  [[ -n "$bg" ]] && bg_color="${bg[2]}"
 
   # Build indentation
   local spaces=""
@@ -61,5 +77,23 @@ zc_print() {
   # Format the message with the provided arguments
   local formatted_message=$(printf "$message" "$@")
 
-  print -P "${bg_color}%F{$color_name}${prefix}${spaces}${formatted_message}%f%k"
+  if [[ $bg_color ]] then
+    print -P "%K{$bg_color}${prefix}${spaces}%F{$fg_color}${formatted_message}%f${block_end}%k"
+  else
+    print -P "${prefix}${spaces}%F{$fg_color}${formatted_message}%f"
+  fi
+
+  # Print stack trace if --trace is specified
+  if [[ -n "$trace" ]]; then
+    local i=1
+    local depth=0
+    while [[ -n "$functrace[$i]" ]]; do
+      local fn=${functrace[$((i++))]}
+
+      [[ $fn == "(anon)" ]] && continue
+      [[ $fn == /* && $fn != $ZCUSTOM* ]] && continue
+
+      print -P "${spaces}  $((depth++)): ${fn#$ZCUSTOM/}"
+    done
+  fi
 }

@@ -5,7 +5,7 @@
 #   --script name:  Source a script from $ZSCRIPTS
 #   --function name:    Autoload all functions from $ZFUNCTIONS
 #   --libs:         Source all library files from $ZLIB
-#   --config name:  Get full filepath of config file from $ZCONFIG
+#   --config name:  Get full path to a config file
 zc_load() {
   local -A opts
   zparseopts -D -E -A opts \
@@ -17,41 +17,53 @@ zc_load() {
   [[ ${#opts[@]} != 1 ]] && zc_error "Exactly one parameter must be specified"
 
   local type=${${(k)opts}[1]}
-  local filepath=${opts[$type]}
+  local file=${opts[$type]}
 
   case $type in
     "--script")
-      local script_path="$ZSCRIPTS/$filepath"
+      local filepath="$ZSCRIPTS/$file"
 
-      [[ -f $script_path ]] && {
-        zc_debug "Sourcing '%s'" ${script_path#$ZCUSTOM/}
-        source "$script_path"
-      } || zc_error "Script not found: %s" ${script_path#$ZCUSTOM/}
+      [[ -f $filepath ]] || {
+        zc_error "Script not found: %s" ${filepath#$ZCUSTOM/}
+        return 1
+      }
+
+      zc_debug "Sourcing '%s'" ${filepath#$ZCUSTOM/}
+      source "$filepath" || return $?
       ;;
     "--function")
-      local function_path="$ZFUNCTIONS/$filepath"
+      local filepath="$ZFUNCTIONS/$file"
 
-      [[ -f $function_path ]] && {
-        zc_debug "Autoloading function '%s'" ${function_path:t}
-        autoload -Uz ${function_path}
-      } || zc_error "Function not found: %s" ${function_path#$ZCUSTOM/}
+      [[ -f $filepath ]] || {
+        zc_error "Function not found: %s" ${filepath#$ZCUSTOM/}
+        return 1
+      }
+
+      zc_debug "Autoloading function '%s'" ${filepath:t}
+      autoload -Uz ${filepath}
       ;;
     "--lib")
-      local lib_path="$ZLIB/$filepath"
+      local filepath="$ZLIB/$file"
 
-      [[ -f $lib_path ]] && {
-        zc_debug "Sourcing '%s'" ${lib_path#$ZCUSTOM/}
-        source $lib_path
-      } || zc_error "Library not found: %s" ${lib_path#$ZCUSTOM/}
+      [[ -f $filepath ]] || {
+        zc_error "Library not found: %s" ${filepath#$ZCUSTOM/}
+        return 1
+      }
+
+      zc_debug "Sourcing '%s'" ${filepath#$ZCUSTOM/}
+      source $filepath
       ;;
 
     "--config")
-      local config_path="$ZCONFIG/$filepath"
+      local filepath="$ZCONFIG/$file"
 
-      [[ -f $config_path ]] && {
-        zc_debug "Config located: '%s'" ${config_path#$ZCUSTOM/}
-        echo $config_path
-      } || zc_error "Config not found: %s" ${config_path#$ZCUSTOM/}
+      [[ -f $filepath ]] && {
+        zc_error "Config not found: %s" ${filepath#$ZCUSTOM/}
+        return 1
+      }
+
+      zc_debug "Config located: '%s'" ${filepath#$ZCUSTOM/}
+      echo $filepath
       ;;
   esac
 }

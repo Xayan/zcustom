@@ -3,28 +3,58 @@
 # Usage:
 # zc_debug "message"
 # zc_debug --dumpenv
+# Arguments:
+#   $1: message or --dumpenv
 zc_debug() {
-  if [[ $ZDEBUG != true ]]; then
-    return 0
+  if [[ $1 == "--enable" ]]; then
+    echo $(date) > "$ZDEBUGFILE"; ZDEBUG=1
+    zc_debug "Debug mode enabled"
+    return
+  elif [[ $1 == "--disable" ]]; then
+    zc_debug "Debug mode disabled"
+    rm -f "$ZDEBUGFILE"; ZDEBUG=0
+    return
   fi
 
-  case "$1" in
-    --dumpenv)
-      __zc_debug_dumpenv
-      ;;
-    *)
-      local prefix=""
+  if [[ $ZDEBUG -eq 0 ]] then
+    return
+  fi
 
-      [[ -n "$funcstack[2]" ]] \
-        && [[ "${funcstack[2]}" = /* ]] \
-          && prefix=${${funcstack[2]#$ZCUSTOM}#?} \
-          || prefix=${funcstack[2]} \
-        || prefix="zsh"
+  if [[ "$1" == "--dumpenv" ]]; then
+    # Debug settings
+    zc_print --debug "Debug Settings:"
+    zc_print --indent 1 "ZDEBUG=%s" "$ZDEBUG"
 
-      local message=$1 && shift
-      local formatted_message=$(printf $message $@)
+    # Directory structure
+    zc_print --debug "Directory Structure:"
+    zc_print --indent 1 "ZCUSTOM=%s" "$ZCUSTOM"
+    zc_print --indent 1 "ZCONFIG=%s" "$ZCONFIG"
+    zc_print --indent 1 "ZFUNCTIONS=%s" "$ZFUNCTIONS"
+    zc_print --indent 1 "ZLIB=%s" "$ZLIB"
+    zc_print --indent 1 "ZPLUGINS=%s" "$ZPLUGINS"
+    zc_print --indent 1 "ZSCRIPTS=%s" "$ZSCRIPTS"
+    zc_print --indent 1 "ZLOGS=%s" "$ZLOGS"
+    zc_print --indent 1 "ZCACHE=%s" "$ZCACHE"
 
-      print -P "%F{yellow}[DBG]%f (${prefix}): ${formatted_message}"
-      ;;
-  esac
+    # ZSH internal
+    zc_print --debug "ZSH Internal:"
+    zc_print --indent 1 "fpath=(%s)" "$fpath"
+    zc_print --indent 1 "ZDOTDIR=%s" "$ZDOTDIR"
+    zc_print --indent 1 "ZCOMPDUMP=%s" "$ZCOMPDUMP"
+
+    # Antigen settings
+    zc_print --debug "Antigen Configuration:"
+    zc_print --indent 1 "ADOTDIR=%s" "$ADOTDIR"
+    zc_print --indent 1 "ANTIGEN_AUTO_CONFIG=%s" "$ANTIGEN_AUTO_CONFIG"
+    zc_print --indent 1 "ANTIGEN_COMPDUMP=%s" "$ANTIGEN_COMPDUMP"
+    zc_print --indent 1 "ANTIGEN_CACHE=%s" "$ANTIGEN_CACHE"
+    zc_print --indent 1 "ANTIGEN_LOG=%s" "$ANTIGEN_LOG"
+    zc_print --indent 1 "ANTIGEN_DEBUG_LOG=%s" "$ANTIGEN_DEBUG_LOG"
+
+    # Plugin specific
+    zc_print --debug "Plugin Configuration:"
+    zc_print --indent 1 "ZSHZ_DATA=%s" "$ZSHZ_DATA"
+  else
+    zc_print --debug "$@"
+  fi
 }

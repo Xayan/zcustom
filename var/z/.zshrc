@@ -1,1 +1,1 @@
-/Users/xayan/.zsh/.zshrc
+../../.zshrc
