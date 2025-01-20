@@ -3,10 +3,9 @@
 # Basic emacs keybindings
 bindkey -e
 
-local file="$ZCONFIG/bindkey.json"
-
-if [[ -f $file ]]; then
-  zc_debug "Loading keybindings from '%s'" ${file#$ZCUSTOM/}
+() {
+  # Definition needs to be separated from zc_load call, otherwise return code is not propagated
+  local file; file=$(zc_load --config "keybindings.json") || return 1
 
   # Parse widgets bindings
   jq -r '.widgets | to_entries | .[] | "\(.key) \(.value)"' "$file" | while read -r key widget; do
@@ -20,6 +19,4 @@ if [[ -f $file ]]; then
     zc_debug "  Binding $key to $command"
     bindkey -s "$key" "$command"
   done
-else
-  zc_error "Keybindings file not found: '%s'" ${file#$ZCUSTOM/}
-fi
+}

@@ -24,7 +24,7 @@ zc_load() {
       local filepath="$ZSCRIPTS/$file"
 
       [[ -f $filepath ]] || {
-        zc_error "Script not found: %s" ${filepath#$ZCUSTOM/}
+        zc_print --err --trace "Script not found: %s" ${filepath#$ZCUSTOM/} >&2
         return 1
       }
 
@@ -35,7 +35,7 @@ zc_load() {
       local filepath="$ZFUNCTIONS/$file"
 
       [[ -f $filepath ]] || {
-        zc_error "Function not found: %s" ${filepath#$ZCUSTOM/}
+        zc_print --err "Function not found: %s" ${filepath#$ZCUSTOM/} >&2
         return 1
       }
 
@@ -46,7 +46,7 @@ zc_load() {
       local filepath="$ZLIB/$file"
 
       [[ -f $filepath ]] || {
-        zc_error "Library not found: %s" ${filepath#$ZCUSTOM/}
+        zc_print --err "Library not found: %s" ${filepath#$ZCUSTOM/} >&2
         return 1
       }
 
@@ -57,12 +57,11 @@ zc_load() {
     "--config")
       local filepath="$ZCONFIG/$file"
 
-      [[ -f $filepath ]] && {
-        zc_error "Config not found: %s" ${filepath#$ZCUSTOM/}
+      [[ -f $filepath ]] || {
+        zc_print --err --trace "Config not found: '%s'" ${filepath#$ZCUSTOM/} >&2
         return 1
       }
 
-      zc_debug "Config located: '%s'" ${filepath#$ZCUSTOM/}
       echo $filepath
       ;;
   esac

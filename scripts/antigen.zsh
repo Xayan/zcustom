@@ -30,24 +30,42 @@ if [[ ! -f "$ADOTDIR/antigen.zsh" ]]; then
   fi
 fi
 
-source $ADOTDIR/antigen.zsh
+() {
+  local config; config=$(zc_load --config "antigen.json") || return 1
+  local omz=$(jq -r '."oh-my-zsh"' "$config" -e >/dev/null && echo 1 || echo 0)
+  local theme=$(jq -r '.theme' "$config")
 
-antigen use oh-my-zsh
+  zc_debug --indent 1 "oh-my-zsh: $omz"
+  zc_debug --indent 1 "theme: $theme"
+  zc_debug --indent 1 "plugins:"
 
-antigen theme sindresorhus/pure@main
+  bundle_plugins() {
+    local filter=$([[ -n $1 ]] && echo '.after == $after' || echo '.after == null')
+    local after=$1
 
-antigen bundle git
-# antigen bundle unixorn/fzf-zsh-plugin@main
-antigen bundle mafredri/zsh-async@main
-antigen bundle zsh-users/zsh-completions
-# antigen bundle zdharma-continuum/fast-syntax-highlighting
-antigen bundle agkozak/zsh-z
+    jq -r --arg after "$after" '.plugins | .[] | select('"${filter}"') | "\(.name) \(.local // "false")"' "$config" | while read -r name local; do
+      zc_debug --indent 2 "$name [local=$local]"
 
-# antigen bundle $ZPLUGINS/zcm --no-local-clone
+      if [[ "$local" == "true" ]]; then
+        antigen bundle "$ZPLUGINS/$name" --no-local-clone
+      else
+        antigen bundle "$name"
+      fi
+    done
+  }
 
-zc_compinit
 
-# antigen bundle Aloxaf/fzf-tab
-antigen bundle zsh-users/zsh-autosuggestions
+  source $ADOTDIR/antigen.zsh
 
-antigen apply
+  [[ $omz ]] && antigen use oh-my-zsh
+
+  antigen theme "$theme"
+
+  bundle_plugins
+
+  zc_compinit
+
+  bundle_plugins "compinit"
+
+  antigen apply
+}

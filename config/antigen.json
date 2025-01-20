@@ -1,0 +1,22 @@
+{
+  "oh-my-zsh": true,
+  "theme": "sindresorhus/pure@main",
+  "plugins": [
+    {
+      "name": "git"
+    },
+    {
+      "name": "mafredri/zsh-async@main"
+    },
+    {
+      "name": "zsh-users/zsh-completions"
+    },
+    {
+      "name": "agkozak/zsh-z"
+    },
+    {
+      "name": "zsh-users/zsh-autosuggestions",
+      "after": "compinit"
+    }
+  ]
+}
